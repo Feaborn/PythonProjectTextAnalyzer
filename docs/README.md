@@ -95,14 +95,30 @@ sudo docker compose up --build
 
 ---
 
-## 🖥️ Альтернатива: запуск вручную (без Docker)
+## 🖥️ Альтернатива: запуск вручную (без ВМ)
 
 ```bash
+# 1. Клонируем репозиторий
 git clone https://github.com/Feaborn/PythonProjectTextAnalyzer.git
 cd PythonProjectTextAnalyzer/text_analyzer
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver 0.0.0.0:8000
+
+# 2. Убедимся, что Docker установлен
+docker --version
+docker compose version
+
+# 3. Собираем и запускаем контейнеры
+docker compose up --build -d
+
+# 4. Выполняем миграции внутри контейнера
+docker compose exec web python manage.py migrate
+
+# 5. (По желанию) создаём суперпользователя для доступа к админке
+docker compose exec web python manage.py createsuperuser
+
+# 6. Готово! Приложение будет доступно по адресу:
+# http://localhost:8000/
+# http://localhost:8000/admin/
+# http://localhost:8000/swagger/
 ```
 
 ---
