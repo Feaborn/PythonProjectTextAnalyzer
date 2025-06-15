@@ -1,6 +1,9 @@
 from django.apps import AppConfig
 
-
 class AnalyzerConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'analyzer'
+    """
+    Конфигурация приложения analyzer.
+    Определяет метаданные и поведение приложения.
+    """
+    default_auto_field = 'django.db.models.BigAutoField'  # Тип автоинкрементного поля
+    name = 'analyzer'  # Имя приложения (должно совпадать с именем папки)

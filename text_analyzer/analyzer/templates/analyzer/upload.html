@@ -6,8 +6,8 @@
 <body>
     <h1>Загрузите текстовый файл для анализа</h1>
     <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
+        {% csrf_token %}  <!-- Защита от CSRF-атак -->
+        {{ form.as_p }} <!-- Автоматический рендеринг формы -->
         <button type="submit">Загрузить</button>
     </form>
 </body>
