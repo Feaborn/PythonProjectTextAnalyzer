@@ -91,6 +91,9 @@ cd ~/PythonProjectTextAnalyzer/text_analyzer
 Собери и запусти проект:
 
 ```bash
+sudo docker compose up -d
+sudo docker compose exec web python manage.py makemigrations
+sudo docker compose exec web python manage.py migrate
 sudo docker compose up --build
 ```
 

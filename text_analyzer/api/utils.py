@@ -1,5 +1,41 @@
 from collections import Counter, namedtuple
 import os, heapq
+from math import log
+
+from math import log
+
+def calculate_tf(text):
+    words = text.lower().split()
+    total_words = len(words)
+    word_counts = Counter(words)
+    tf_scores = {word: count / total_words for word, count in word_counts.items()}
+    return tf_scores
+
+def calculate_idf(documents_texts):
+    import math
+    N = len(documents_texts)
+    idf_scores = {}
+    all_words = set(word for text in documents_texts for word in text.lower().split())
+    for word in all_words:
+        containing_docs = sum(1 for text in documents_texts if word in text.lower().split())
+        idf_scores[word] = log(N / (1 + containing_docs))  # добавлено +1 чтобы избежать деления на 0
+    return idf_scores
+
+def calculate_statistics(document, all_documents):
+    document_text = extract_text_from_txt(document)
+    documents_text = [extract_text_from_txt(doc) for doc in all_documents]
+
+    tf_scores = calculate_tf(document_text)
+    idf_scores = calculate_idf(documents_text)
+
+    statistics = {}
+    for word in tf_scores:
+        tf = tf_scores[word]
+        idf = idf_scores.get(word, 0.0)
+        tf_idf = tf * idf
+        statistics[word] = {'tf': tf, 'idf': idf, 'tf_idf': tf_idf}
+    return statistics
+
 
 def extract_text_from_txt(document):
     with document.file.open('rb') as f:
@@ -75,5 +111,41 @@ def huffman_encode(text):
     codebook = build_huffman_codes(tree)
     encoded_text = ''.join(codebook[char] for char in text)
     return encoded_text
+
+def calculate_statistics_for_collection(documents):
+    total_documents = len(documents)
+    term_document_frequency = {}
+
+    # Преобразуем объекты Document в текст
+    document_texts = [extract_text_from_txt(doc) for doc in documents]
+
+    # Подсчёт DF
+    for text in document_texts:
+        words = set(text.split())
+        for word in words:
+            term_document_frequency[word] = term_document_frequency.get(word, 0) + 1
+
+    # Подсчёт общей частоты всех слов
+    total_terms = []
+    for text in document_texts:
+        total_terms.extend(text.split())
+    total_term_count = len(total_terms)
+    term_frequencies = Counter(total_terms)
+
+    stats = {}
+    for term, count in term_frequencies.items():
+        tf = count / total_term_count
+        df = term_document_frequency.get(term, 0)
+        idf = log((1 + total_documents) / (1 + df)) + 1  # сглаженный IDF
+        tf_idf = tf * idf
+
+        stats[term] = {
+            "tf": tf,
+            "idf": idf,
+            "tf_idf": tf_idf
+        }
+
+    return stats
+
 
 

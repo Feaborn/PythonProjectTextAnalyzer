@@ -5,12 +5,13 @@ from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import update_session_auth_hash
+from .utils import calculate_statistics
 
 from django.views.decorators.csrf import csrf_exempt
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
+from .utils import calculate_statistics_for_collection
 from .serializers import RegisterSerializer, LoginSerializer, ChangePasswordSerializer
 
 from .authentication import CsrfExemptSessionAuthentication
@@ -35,7 +36,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from docx import Document as DocxDocument
 import PyPDF2
-
+from .utils import calculate_statistics
 from .serializers import CollectionSerializer  # если у тебя уже есть сериализатор
 from django.shortcuts import get_object_or_404
 from .utils import calculate_tf_for_collection
@@ -248,20 +249,19 @@ class DocumentDetailView(APIView):
             return Response({"error": "Document not found or access denied."}, status=status.HTTP_404_NOT_FOUND)
 
 class DocumentStatisticsView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
     def get(self, request, document_id):
-        try:
-            document = Document.objects.get(id=document_id)
-            if document.user != request.user:
-                raise PermissionDenied("Нет доступа к этому документу")
-        except Document.DoesNotExist:
-            return Response({'error': 'Документ не найден'}, status=status.HTTP_404_NOT_FOUND)
+        document = get_object_or_404(Document, id=document_id)
+        collections = document.collections.all()
 
-        document.file.open()
-        all_user_documents = Document.objects.filter(user=request.user)
-        stats = calculate_tf_idf_for_document(document, all_user_documents)
+        if not collections:
+            return Response({"error": "Документ не входит ни в одну коллекцию"}, status=400)
+
+        # Берём ВСЕ документы из коллекций, куда входит этот документ
+        all_documents = Document.objects.filter(collections__in=collections).distinct()
+
+        stats = calculate_statistics(document, all_documents)
         return Response(stats)
+
 
 
 class DocumentDeleteView(APIView):
@@ -292,10 +292,16 @@ class CollectionDetailView(APIView):
 
 class CollectionStatisticsView(APIView):
     def get(self, request, collection_id):
-        collection = get_object_or_404(Collection, id=collection_id)
+        collection = get_object_or_404(Collection, pk=collection_id)
         documents = collection.documents.all()
-        tf_scores = calculate_tf_for_collection(documents)
-        return Response(tf_scores)
+
+        if not documents.exists():
+            return Response({"detail": "No documents found in the collection"}, status=404)
+
+        stats = calculate_statistics_for_collection(documents)
+        return Response(stats)
+
+
 
 class CollectionAddDocumentView(APIView):
     def post(self, request, collection_id, document_id):
