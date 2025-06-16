@@ -52,3 +52,13 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
         fields = ['name']
+
+class DocumentUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['file']
+
+    def validate_file(self, value):
+        if not value.name.endswith(".txt"):
+            raise serializers.ValidationError("Загружать можно только .txt файлы.")
+        return value

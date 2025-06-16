@@ -56,8 +56,8 @@ text_analyzer/                # Корневой Django-проект
 ### 📦 1. Перенос проекта на сервер (с локальной машины) и подключение к серверу:
 
 ```bash
-scp -i "путь_до_ключа" -r ПУТЬ_К_ПРОЕКТУ ubuntu@<IP>:~
-ssh ubuntu@37.9.53.151 -i ПУТЬ_К_КЛЮЧУ
+scp -i "C:/Users/greyw/.ssh/private.key" -r C:/Users/greyw/PycharmProjects/PythonProjectTextAnalyzer ubuntu@37.9.53.151:~
+ssh ubuntu@37.9.53.151 -i "C:/Users/greyw/.ssh/private.key"
 
 ```
 
@@ -140,10 +140,10 @@ docker compose exec web python manage.py migrate
 # 5. (По желанию) создаём суперпользователя для доступа к админке
 docker compose exec web python manage.py createsuperuser
 
-# 6. Готово! Приложение будет доступно по адресу:
-# http://localhost:8000/
-# http://localhost:8000/admin/
-# http://localhost:8000/swagger/
+# 6. Приложение будет доступно по адресу:
+- Приложение: http://localhost:8000/
+- Админка Django: http://localhost:8000/admin/
+- Swagger-интерфейс: http://localhost:8000/swagger/
 ```
 
 ---

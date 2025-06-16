@@ -1,23 +1,20 @@
 from collections import Counter, namedtuple
-from docx import Document as DocxDocument
 import os, heapq
 
-def extract_text_from_docx(document):
-    with document.file.open("rb") as f:
-        doc = DocxDocument(f)
-        text = "\n".join([para.text for para in doc.paragraphs])
-    return text
+def extract_text_from_txt(document):
+    with document.file.open('rb') as f:
+        return f.read().decode('utf-8')
 
 def calculate_tf_idf_for_document(document, all_documents):
     from sklearn.feature_extraction.text import TfidfVectorizer
 
     all_documents = list(all_documents)  # Преобразуем QuerySet в список
 
-    documents_text = [extract_text_from_docx(doc) for doc in all_documents]
+    documents_text = [extract_text_from_txt(doc) for doc in all_documents]
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(documents_text)
 
-    index = all_documents.index(document)  # Теперь работает, так как all_documents — список
+    index = all_documents.index(document)
     feature_names = vectorizer.get_feature_names_out()
     doc_vector = tfidf_matrix[index]
 
@@ -26,11 +23,17 @@ def calculate_tf_idf_for_document(document, all_documents):
 
     return tfidf_scores
 
+
 def calculate_tf_for_collection(documents):
     from sklearn.feature_extraction.text import TfidfVectorizer
 
-    documents_text = [extract_text_from_docx(doc) for doc in documents]
-    vectorizer = TfidfVectorizer()
+    documents_text = [extract_text_from_txt(doc) for doc in documents]
+
+    vectorizer = TfidfVectorizer(
+        token_pattern=r"(?u)\b\w+\b",  # разрешает любые слова, включая односимвольные
+        lowercase=True,
+        stop_words=None
+    )
     tfidf_matrix = vectorizer.fit_transform(documents_text)
 
     summed_vector = tfidf_matrix.sum(axis=0)

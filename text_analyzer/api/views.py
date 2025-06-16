@@ -1,4 +1,4 @@
-import os
+import os, re
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -41,6 +41,7 @@ from django.shortcuts import get_object_or_404
 from .utils import calculate_tf_for_collection
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.db.models import Count
 
 
 # --- STATUS ---
@@ -61,11 +62,45 @@ def version_view(request):
 # --- METRICS ---
 @swagger_auto_schema(method='get', responses={200: 'Метрики сервиса'})
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def metrics_view(request):
+    import PyPDF2
+    from docx import Document as DocxDocument
+
+    user = request.user
+    documents = Document.objects.filter(user=user)
+    word_set = set()
+
+    for doc in documents:
+        try:
+            file_path = doc.file.path
+            ext = os.path.splitext(file_path)[1].lower()
+            text = ""
+
+            if ext == ".txt":
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    text = f.read()
+            elif ext == ".pdf":
+                with open(file_path, 'rb') as f:
+                    reader = PyPDF2.PdfReader(f)
+                    text = "".join(page.extract_text() or "" for page in reader.pages)
+            elif ext == ".docx":
+                docx = DocxDocument(file_path)
+                text = "\n".join([p.text for p in docx.paragraphs])
+            else:
+                continue  # Пропустить неподдерживаемый формат
+
+            words = re.findall(r'\b\w+\b', text.lower())
+            word_set.update(words)
+
+        except Exception as e:
+            continue  # Пропустить при любой ошибке
+
     metrics = {
-        "files_uploaded": 12,
-        "unique_words_analyzed": 1253,
+        "files_uploaded": documents.count(),
+        "unique_words_analyzed": len(word_set)
     }
+
     return Response(metrics)
 
 
