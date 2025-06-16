@@ -7,21 +7,46 @@
 ## 🔧 Структура проекта
 
 ```
-├── Dockerfile                   # Инструкция сборки контейнера
-├── docker-compose.yml          # Docker Compose для PostgreSQL и Django
-├── requirements.txt            # Python-зависимости
-├── README.md                   # Документация проекта
-├── .env.example                # Пример переменных окружения
-├── text_analyzer/              # Django-проект
-│   ├── manage.py               # Django CLI
-│   ├── analyzer/               # Основное приложение
-│   │   ├── views.py, forms.py  # Логика и формы
-│   │   ├── models.py, serializers.py, urls.py
-│   │   └── templates/          # HTML-шаблоны
-│   ├── api/                    # Эндпоинты REST API
-│   │   ├── views.py, urls.py, serializers.py
-│   └── text_analyzer/          # Настройки проекта (settings.py, urls.py)
-└── media/documents/            # Хранилище загруженных файлов
+text_analyzer/                # Корневой Django-проект
+├── analyzer/                   # Логика TF-IDF и работы с документами
+│   ├── migrations/             # Django-миграции
+│   ├── templates/              # (не используется, но включено Django'ом)
+│   ├── __init__.py             # Делает папку пакетом
+│   ├── admin.py                # Регистрация моделей в админке
+│   ├── apps.py                 # Конфигурация приложения
+│   ├── forms.py                # Не используется, можно удалить
+│   ├── models.py               # Модель Document
+│   ├── tests.py                # Тесты приложения
+│   ├── urls.py                 # URL-роутинг приложения
+│   └── views.py                # Представления (анализ TF-IDF, работа с документами)
+
+├── api/                        # REST API, сериализаторы, авторизация
+│   ├── migrations/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── authentication.py       # JWT-аутентификация и регистрация
+│   ├── models.py               # Модель Collection и DocumentCollection
+│   ├── serializers.py          # Сериализаторы для API: Document, Collection
+│   ├── permissions.py          # Кастомные разрешения (доступ к своим объектам)
+│   ├── utils.py                # Вспомогательные функции (например, алгоритм Хаффмана)
+│   ├── views.py                # ViewSet'ы для всех API-эндпоинтов
+│   ├── urls.py                 # Роутинг API
+│   └── tests.py
+
+├── text_analyzer/              # Настройки Django
+│   ├── __init__.py
+│   ├── settings.py             # Все настройки проекта
+│   ├── urls.py                 # Глобальный роутинг
+│   ├── asgi.py, wsgi.py        # Точки входа сервера (ASGI / WSGI)
+
+├── media/                      # Папка для загружаемых файлов
+
+├── manage.py                   # Django CLI
+
+ docker-compose.yml           # Контейнеризация проекта
+ Dockerfile                   # Сборка web-контейнера
+ requirements.txt             # Зависимости
 ```
 
 ---
